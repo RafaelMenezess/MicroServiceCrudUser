@@ -37,4 +37,21 @@ public class UserControllerTests
         var returnUsers = Assert.IsType<List<User>>(returnValue.Value);
         Assert.Equal(2, returnUsers.Count);
     }
+
+    [Fact]
+    public async Task GetUserById()
+    {
+        // Arrange
+        var user = new User { Id = 1, Username = "user1" };
+        _mockUserService.Setup(service => service.GetUserById(1)).ReturnsAsync(user);
+
+        // Act
+        var result = await _controller.GetUser(1);
+
+        // Assert
+        var actionResult = Assert.IsType<ActionResult<User>>(result);
+        var returnValue = Assert.IsType<OkObjectResult>(actionResult.Result);
+        var returnUser = Assert.IsType<User>(returnValue.Value);
+        Assert.Equal("user1", returnUser.Username);
+    }
 }
