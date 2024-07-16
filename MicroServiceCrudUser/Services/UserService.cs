@@ -19,9 +19,9 @@ public class UserService : IUserService
         return await _context.Users.ToListAsync();
     }
 
-    public Task<User> GetUserById(int id)
+    public async Task<User> GetUserById(int id)
     {
-        throw new NotImplementedException();
+        return await _context.Users.FindAsync(id);
     }
     public Task<User> CreateUser(User user)
     {

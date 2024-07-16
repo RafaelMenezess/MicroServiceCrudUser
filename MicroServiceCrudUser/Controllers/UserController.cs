@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MicroServiceCrudUser.Controllers;
 
-[Route("api/[controller]")]
 [ApiController]
+[Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -19,5 +19,16 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<IEnumerable<User>>> GetUsers()
     {
         return Ok(await _userService.GetAllUsers());
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<User>> GetUser(int id)
+    {
+        var user = await _userService.GetUserById(id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        return Ok(user);
     }
 }
