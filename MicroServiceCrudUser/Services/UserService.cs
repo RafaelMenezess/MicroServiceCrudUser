@@ -1,14 +1,24 @@
 ﻿using MicroServiceCrudUser.Models;
+using MicroServiceCrudUser.Models.Context;
 using MicroServiceCrudUser.Services.IServices;
+using Microsoft.EntityFrameworkCore;
 
 namespace MicroServiceCrudUser.Services;
 
 public class UserService : IUserService
 {
-    public Task<IEnumerable<User>> GetAllUsers()
+    private readonly MySQLContext _context;
+    private readonly IConfiguration _configuration;
+    public UserService(MySQLContext context, IConfiguration configuration)
     {
-        throw new NotImplementedException();
+        _context = context;
+        _configuration = configuration;
     }
+    public async Task<IEnumerable<User>> GetAllUsers()
+    {
+        return await _context.Users.ToListAsync();
+    }
+
     public Task<User> GetUserById(int id)
     {
         throw new NotImplementedException();
