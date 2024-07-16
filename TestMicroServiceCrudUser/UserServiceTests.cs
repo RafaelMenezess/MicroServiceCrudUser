@@ -71,4 +71,18 @@ public class UserServiceTests
         Assert.Equal("updated@example.com", updatedUser.Email);
     }
 
+    [Fact]
+    public async Task DeleteUser()
+    {
+        var user = new User { Username = "testuser4", PasswordHash = "password", Email = "test4@example.com" };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        var result = await _userService.DeleteUser(user.Id);
+
+        Assert.True(result);
+        var deletedUser = await _userService.GetUserById(user.Id);
+        Assert.Null(deletedUser);
+    }
+
 }
