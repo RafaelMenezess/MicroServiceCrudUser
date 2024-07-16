@@ -85,4 +85,17 @@ public class UserControllerTests
         // Assert
         Assert.IsType<NoContentResult>(result);
     }
+
+    [Fact]
+    public async Task DeleteUser()
+    {
+        // Arrange
+        _mockUserService.Setup(service => service.DeleteUser(1)).ReturnsAsync(true);
+
+        // Act
+        var result = await _controller.DeleteUser(1);
+
+        // Assert
+        Assert.IsType<NoContentResult>(result);
+    }
 }
