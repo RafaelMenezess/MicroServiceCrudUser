@@ -69,9 +69,9 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost("token")]
-    public async Task<IActionResult> GenerateToken(User user)
+    public async Task<IActionResult> GenerateToken(int id)
     {
-        var token = await _userService.GenerateToken(user);
+        var token = await _userService.GenerateToken(id);
         return Ok(new { token });
     }
 

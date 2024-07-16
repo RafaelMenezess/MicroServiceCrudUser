@@ -1,6 +1,7 @@
 ﻿using MicroServiceCrudUser.Models;
 using MicroServiceCrudUser.Models.Context;
 using MicroServiceCrudUser.Services.IServices;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -69,8 +70,14 @@ public class UserService : IUserService
     }
 
 
-    public async Task<string> GenerateToken(User user)
+    public async Task<string> GenerateToken(int id)
     {
+        User user = await GetUserById(id);
+        if (user == null)
+        {
+            return null;
+        }
+
         var tokenHandler = new JwtSecurityTokenHandler();
         var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
         var tokenDescriptor = new SecurityTokenDescriptor
