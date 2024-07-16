@@ -3,6 +3,7 @@ using MicroServiceCrudUser.Models;
 using MicroServiceCrudUser.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Xunit;
 
 namespace TestMicroServiceCrudUser;
 
