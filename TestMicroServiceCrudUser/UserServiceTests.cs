@@ -43,4 +43,17 @@ public class UserServiceTests
         Assert.True(BCrypt.Net.BCrypt.Verify("password", result.PasswordHash));
     }
 
+    [Fact]
+    public async Task GetUserById()
+    {
+        var user = new User { Username = "testuser2", PasswordHash = "password", Email = "test2@example.com" };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        var result = await _userService.GetUserById(user.Id);
+
+        Assert.NotNull(result);
+        Assert.Equal("testuser2", result.Username);
+    }
+
 }
