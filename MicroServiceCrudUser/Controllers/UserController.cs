@@ -74,4 +74,16 @@ public class UsersController : ControllerBase
         var token = await _userService.GenerateToken(user);
         return Ok(new { token });
     }
+
+    [HttpPost("change-password")]
+    public async Task<IActionResult> ChangePassword(int userId, string newPassword)
+    {
+        var result = await _userService.ChangePassword(userId, newPassword);
+        if (!result)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
+    }
 }
