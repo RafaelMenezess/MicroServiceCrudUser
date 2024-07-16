@@ -23,9 +23,12 @@ public class UserService : IUserService
     {
         return await _context.Users.FindAsync(id);
     }
-    public Task<User> CreateUser(User user)
+    public async Task<User> CreateUser(User user)
     {
-        throw new NotImplementedException();
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash);
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+        return user;
     }
 
     public Task<bool> UpdateUser(User user)
