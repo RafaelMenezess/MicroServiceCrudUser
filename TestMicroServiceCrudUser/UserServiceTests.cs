@@ -56,4 +56,19 @@ public class UserServiceTests
         Assert.Equal("testuser2", result.Username);
     }
 
+    [Fact]
+    public async Task UpdateUser()
+    {
+        var user = new User { Username = "testuser3", PasswordHash = "password", Email = "test3@example.com" };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        user.Email = "updated@example.com";
+        var result = await _userService.UpdateUser(user);
+
+        Assert.True(result);
+        var updatedUser = await _userService.GetUserById(user.Id);
+        Assert.Equal("updated@example.com", updatedUser.Email);
+    }
+
 }
