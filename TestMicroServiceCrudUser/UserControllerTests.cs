@@ -71,4 +71,18 @@ public class UserControllerTests
         var returnUser = Assert.IsType<User>(returnValue.Value);
         Assert.Equal("user1", returnUser.Username);
     }
+
+    [Fact]
+    public async Task UpdateUser()
+    {
+        // Arrange
+        var user = new User { Id = 1, Username = "user1", Email = "old@example.com" };
+        _mockUserService.Setup(service => service.UpdateUser(user)).ReturnsAsync(true);
+
+        // Act
+        var result = await _controller.UpdateUser(1, user);
+
+        // Assert
+        Assert.IsType<NoContentResult>(result);
+    }
 }
