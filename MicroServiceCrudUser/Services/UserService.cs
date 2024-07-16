@@ -2,6 +2,10 @@
 using MicroServiceCrudUser.Models.Context;
 using MicroServiceCrudUser.Services.IServices;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace MicroServiceCrudUser.Services;
 
@@ -51,20 +55,45 @@ public class UserService : IUserService
             }
         }
     }
+    public async Task<bool> DeleteUser(int id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user == null)
+        {
+            return false;
+        }
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+
+    public async Task<string> GenerateToken(User user)
+    {
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+        var tokenDescriptor = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(new Claim[]
+            {
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+            }),
+            Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:DurationInMinutes"])),
+            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+            Issuer = _configuration["Jwt:Issuer"],
+            Audience = _configuration["Jwt:Audience"]
+        };
+        var token = tokenHandler.CreateToken(tokenDescriptor);
+        return tokenHandler.WriteToken(token);
+    }
+
     public Task<bool> ChangePassword(int userId, string newPassword)
     {
         throw new NotImplementedException();
     }
 
-    public Task<string> GenerateToken(User user)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<bool> DeleteUser(int id)
-    {
-        throw new NotImplementedException();
-    }
 
     private bool UserExists(int id)
     {

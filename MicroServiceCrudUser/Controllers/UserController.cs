@@ -55,4 +55,23 @@ public class UsersController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteUser(int id)
+    {
+        var result = await _userService.DeleteUser(id);
+        if (!result)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
+    }
+
+    [HttpPost("token")]
+    public async Task<IActionResult> GenerateToken(User user)
+    {
+        var token = await _userService.GenerateToken(user);
+        return Ok(new { token });
+    }
 }
