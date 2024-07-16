@@ -38,4 +38,21 @@ public class UsersController : ControllerBase
         var createdUser = await _userService.CreateUser(user);
         return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateUser(int id, User user)
+    {
+        if (id != user.Id)
+        {
+            return BadRequest();
+        }
+
+        var result = await _userService.UpdateUser(user);
+        if (!result)
+        {
+            return NotFound();
+        }
+
+        return NoContent();
+    }
 }

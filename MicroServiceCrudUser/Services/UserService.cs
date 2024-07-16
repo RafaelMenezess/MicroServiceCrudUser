@@ -31,9 +31,25 @@ public class UserService : IUserService
         return user;
     }
 
-    public Task<bool> UpdateUser(User user)
+    public async Task<bool> UpdateUser(User user)
     {
-        throw new NotImplementedException();
+        _context.Entry(user).State = EntityState.Modified;
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!UserExists(user.Id))
+            {
+                return false;
+            }
+            else
+            {
+                throw;
+            }
+        }
     }
     public Task<bool> ChangePassword(int userId, string newPassword)
     {
@@ -48,5 +64,10 @@ public class UserService : IUserService
     public Task<bool> DeleteUser(int id)
     {
         throw new NotImplementedException();
+    }
+
+    private bool UserExists(int id)
+    {
+        return _context.Users.Any(e => e.Id == id);
     }
 }
