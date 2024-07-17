@@ -9,24 +9,32 @@ namespace MicroServiceCrudUser.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly ILogger<UsersController> _logger;
 
-    public UsersController(IUserService userService)
+    public UsersController(IUserService userService, ILogger<UsersController> logger)
     {
         _userService = userService;
+        _logger = logger;
     }
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<User>>> GetUsers()
     {
+        _logger.LogInformation("Buscando todos os usuários");
+
         return Ok(await _userService.GetAllUsers());
     }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<User>> GetUser(int id)
     {
+        _logger.LogInformation($"Buscando usuário Id: {id}");
+
         var user = await _userService.GetUserById(id);
         if (user == null)
         {
+            _logger.LogInformation($"Usuário Id: {id} não encontrado");
+
             return NotFound();
         }
         return Ok(user);
@@ -35,6 +43,8 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<User>> CreateUser(User user)
     {
+        _logger.LogInformation($"Criando novo usuário Nome: {user.Username}");
+
         var createdUser = await _userService.CreateUser(user);
         return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
     }
@@ -44,12 +54,16 @@ public class UsersController : ControllerBase
     {
         if (id != user.Id)
         {
+            _logger.LogInformation($"Id do usuário não confere com o Id do body da requisição");
+
             return BadRequest();
         }
 
         var result = await _userService.UpdateUser(user);
         if (!result)
         {
+            _logger.LogInformation($"Não foi possível atualizar usuário Id: {id}");
+
             return NotFound();
         }
 
@@ -59,9 +73,13 @@ public class UsersController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
+        _logger.LogInformation($"Deletando usuário Id: {id}");
+
         var result = await _userService.DeleteUser(id);
         if (!result)
         {
+            _logger.LogInformation($"Não foi possível deletar usuário Id: {id}");
+
             return NotFound();
         }
 
@@ -71,6 +89,8 @@ public class UsersController : ControllerBase
     [HttpPost("token")]
     public async Task<IActionResult> GenerateToken(int id)
     {
+        _logger.LogInformation($"Gerando token para o usuário Id: {id}");
+
         var token = await _userService.GenerateToken(id);
         return Ok(new { token });
     }
@@ -78,9 +98,13 @@ public class UsersController : ControllerBase
     [HttpPost("change-password")]
     public async Task<IActionResult> ChangePassword(int userId, string newPassword)
     {
+        _logger.LogInformation($"Alterando a senha do usuário Id: {userId}");
+
         var result = await _userService.ChangePassword(userId, newPassword);
         if (!result)
         {
+            _logger.LogInformation($"Não foi possível alterar a senha do usuário Id: {userId}");
+
             return NotFound();
         }
 
