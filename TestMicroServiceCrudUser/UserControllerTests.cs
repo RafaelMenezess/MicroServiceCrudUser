@@ -2,6 +2,7 @@
 using MicroServiceCrudUser.Models;
 using MicroServiceCrudUser.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -11,11 +12,13 @@ public class UserControllerTests
 {
     private readonly UsersController _controller;
     private readonly Mock<IUserService> _mockUserService;
+    private readonly Mock<ILogger<UsersController>> _loggerMock;
 
     public UserControllerTests()
     {
         _mockUserService = new Mock<IUserService>();
-        _controller = new UsersController(_mockUserService.Object);
+        _loggerMock = new Mock<ILogger<UsersController>>();
+        _controller = new UsersController(_mockUserService.Object, _loggerMock.Object);
     }
 
     [Fact]

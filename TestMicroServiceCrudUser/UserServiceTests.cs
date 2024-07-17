@@ -3,6 +3,9 @@ using MicroServiceCrudUser.Models;
 using MicroServiceCrudUser.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using MicroServiceCrudUser.Controllers;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace TestMicroServiceCrudUser;
 
@@ -10,6 +13,8 @@ public class UserServiceTests
 {
     private readonly UserService _userService;
     private readonly MySQLContext _context;
+    private readonly Mock<ILogger<UserService>> _loggerMock;
+
 
     public UserServiceTests()
     {
@@ -28,8 +33,9 @@ public class UserServiceTests
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(inMemorySettings)
             .Build();
-
-        _userService = new UserService(_context, configuration);
+        
+        _loggerMock = new Mock<ILogger<UserService>>();
+        _userService = new UserService(_context, configuration, _loggerMock.Object);
     }
 
     [Fact]
