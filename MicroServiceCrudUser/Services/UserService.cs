@@ -1,7 +1,6 @@
 ﻿using MicroServiceCrudUser.Models;
 using MicroServiceCrudUser.Models.Context;
 using MicroServiceCrudUser.Services.IServices;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -14,26 +13,56 @@ public class UserService : IUserService
 {
     private readonly MySQLContext _context;
     private readonly IConfiguration _configuration;
-    public UserService(MySQLContext context, IConfiguration configuration)
+    private readonly ILogger<UserService> _logger;
+
+    public UserService(MySQLContext context, IConfiguration configuration, ILogger<UserService> logger)
     {
         _context = context;
         _configuration = configuration;
+        _logger = logger;
     }
     public async Task<IEnumerable<User>> GetAllUsers()
     {
-        return await _context.Users.ToListAsync();
+        try
+        {
+            return await _context.Users.ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Erro ao buscar todos os usuários, erro: {ex.Message}");
+
+            return null;
+        }
     }
 
     public async Task<User> GetUserById(int id)
     {
-        return await _context.Users.FindAsync(id);
+        try
+        {
+            return await _context.Users.FindAsync(id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Erro ao buscar o usuário Id: {id}, erro: {ex.Message}");
+
+            return null;
+        }
     }
     public async Task<User> CreateUser(User user)
     {
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash);
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-        return user;
+        try
+        {
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(user.PasswordHash);
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+            return user;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Erro ao criar o usuário Nome: {user.Username}, erro: {ex.Message}");
+
+            return null;
+        }
     }
 
     public async Task<bool> UpdateUser(User user)
@@ -44,70 +73,108 @@ public class UserService : IUserService
             await _context.SaveChangesAsync();
             return true;
         }
-        catch (DbUpdateConcurrencyException)
+        catch (DbUpdateConcurrencyException ex)
         {
             if (!UserExists(user.Id))
             {
+                _logger.LogInformation($"Usuário Id: {user.Id} não existe, erro: {ex.Message}");
+
                 return false;
             }
             else
             {
-                throw;
+                _logger.LogError($"Erro: {ex.Message}");
+
+                return false;
             }
         }
     }
     public async Task<bool> DeleteUser(int id)
     {
-        var user = await _context.Users.FindAsync(id);
-        if (user == null)
+        try
         {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                _logger.LogInformation($"Usuário Id: {id} não encontrado");
+
+                return false;
+            }
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Erro ao deletar o usuário Id: {id}, erro: {ex.Message}");
+
             return false;
         }
-
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
-        return true;
     }
 
 
     public async Task<string> GenerateToken(int id)
     {
-        User user = await GetUserById(id);
-        if (user == null)
+        try
         {
-            return null;
-        }
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(new Claim[]
+            User user = await GetUserById(id);
+            if (user == null)
             {
+                _logger.LogInformation($"Usuário Id: {id} não encontrado");
+
+                return null;
+            }
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"]);
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
                     new Claim(ClaimTypes.Name, user.Username),
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
-            }),
-            Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:DurationInMinutes"])),
-            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-            Issuer = _configuration["Jwt:Issuer"],
-            Audience = _configuration["Jwt:Audience"]
-        };
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-        return tokenHandler.WriteToken(token);
+                }),
+                Expires = DateTime.UtcNow.AddMinutes(int.Parse(_configuration["Jwt:DurationInMinutes"])),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Issuer = _configuration["Jwt:Issuer"],
+                Audience = _configuration["Jwt:Audience"]
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Erro ao gerar token para o usuário Id: {id}, erro: {ex.Message}");
+
+            return null;
+        }
     }
 
     public async Task<bool> ChangePassword(int userId, string newPassword)
     {
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null)
+        try
         {
-            return false;
-        }
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                _logger.LogInformation($"Usuário Id: {userId} não encontrado");
 
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
-        _context.Entry(user).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
-        return true;
+                return false;
+            }
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            _context.Entry(user).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Erro ao atualizar a senha do usuário Id: {userId}, erro: {ex.Message}");
+
+            return false;
+
+        }
     }
 
 
