@@ -17,6 +17,10 @@ public class UsersController : ControllerBase
         _logger = logger;
     }
 
+    /// <summary>
+    /// Busca todos os usuários no banco
+    /// </summary>
+    /// <returns> Uma lista de usuários </returns>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<User>>> GetUsers()
     {
@@ -25,6 +29,11 @@ public class UsersController : ControllerBase
         return Ok(await _userService.GetAllUsers());
     }
 
+    /// <summary>
+    /// Retorna um usuário específico
+    /// </summary>
+    /// <param name="id"> Id do usuário </param>
+    /// <returns> Detalhes de um usuário</returns>
     [HttpGet("{id}")]
     public async Task<ActionResult<User>> GetUser(int id)
     {
@@ -40,8 +49,13 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
+    /// <summary>
+    /// Cria um novo usuário
+    /// </summary>
+    /// <param name="user"> Usuário que será criado </param>
+    /// <returns> Usuário criado </returns>
     [HttpPost]
-    public async Task<ActionResult<User>> CreateUser(User user)
+    public async Task<ActionResult<User>> CreateUser([FromBody] User user)
     {
         _logger.LogInformation($"Criando novo usuário Nome: {user.Username}");
 
@@ -49,8 +63,14 @@ public class UsersController : ControllerBase
         return CreatedAtAction(nameof(GetUser), new { id = createdUser.Id }, createdUser);
     }
 
+    /// <summary>
+    /// Atualiza um usuário existente
+    /// </summary>
+    /// <param name="id"> Id do usuário que vai ser atualizado </param>
+    /// <param name="user"> Dados atualizados do usuário </param>
+    /// <returns> No Content </returns>
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateUser(int id, User user)
+    public async Task<IActionResult> UpdateUser(int id, [FromBody] User user)
     {
         if (id != user.Id)
         {
@@ -70,6 +90,11 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Deleta um usuário
+    /// </summary>
+    /// <param name="id"> Id do usuário que vai ser deletado </param>
+    /// <returns> No Content </returns>
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteUser(int id)
     {
@@ -86,6 +111,11 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// Gera o token para um usuário
+    /// </summary>
+    /// <param name="id"> Id do usuário </param>
+    /// <returns> Token </returns>
     [HttpPost("token")]
     public async Task<IActionResult> GenerateToken(int id)
     {
@@ -95,6 +125,12 @@ public class UsersController : ControllerBase
         return Ok(new { token });
     }
 
+    /// <summary>
+    /// Alterar a senha do usuário
+    /// </summary>
+    /// <param name="userId"> Id do usuário que vai ser alterada a senha </param>
+    /// <param name="newPassword"> Nova senha </param>
+    /// <returns> No Content </returns>
     [HttpPost("change-password")]
     public async Task<IActionResult> ChangePassword(int userId, string newPassword)
     {

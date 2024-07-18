@@ -9,6 +9,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using System.Reflection;
 using System.Text;
 
 
@@ -36,7 +37,7 @@ builder.Services.AddOpenTelemetry()
                 o.AgentHost = builder.Configuration["Jaeger:Host"];
                 o.AgentPort = int.Parse(builder.Configuration["Jaeger:Port"]);
             });
-            //.AddConsoleExporter();
+        //.AddConsoleExporter();
     })
     .WithMetrics(metricsProviderBuilder =>
     {
@@ -44,7 +45,7 @@ builder.Services.AddOpenTelemetry()
             .SetResourceBuilder(ResourceBuilder.CreateDefault().AddService("UserMicroservice"))
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation();
-            //.AddConsoleExporter();
+        //.AddConsoleExporter();
     });
 
 
@@ -90,6 +91,10 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
     c.EnableAnnotations();
+
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
 });
 
 var app = builder.Build();
